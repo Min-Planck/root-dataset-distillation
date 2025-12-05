@@ -40,7 +40,9 @@ class ConvNet(nn.Module):
         num_feat = shape_feat[0] * shape_feat[1] * shape_feat[2]
         self.classifier = nn.Linear(num_feat, num_classes)
 
-    def forward(self, x, return_features=False):
+    def forward(self, x, return_features=False, return_all_layers=False):
+        all_layers_output = [] 
+        
         for d in range(self.depth):
             x = self.layers['conv'][d](x)
             if len(self.layers['norm']) > 0:
@@ -48,12 +50,16 @@ class ConvNet(nn.Module):
             x = self.layers['act'][d](x)
             if len(self.layers['pool']) > 0:
                 x = self.layers['pool'][d](x)
+            
+            if return_all_layers:
+                all_layers_output.append(x)
 
-        # x = nn.functional.avg_pool2d(x, x.shape[-1])
         out = x.view(x.shape[0], -1)
         logit = self.classifier(out)
 
-        if return_features:
+        if return_all_layers:
+            return logit, all_layers_output
+        elif return_features:
             return logit, out
         else:
             return logit

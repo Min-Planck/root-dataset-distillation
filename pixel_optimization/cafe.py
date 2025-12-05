@@ -72,16 +72,27 @@ def condensation(
         lab_real_gather = torch.stack(lab_real_gather, dim=0).reshape(args.batch_size * 10)
         lab_syn_gather = torch.stack(lab_syn_gather, dim=0).reshape(args.ipc * 10)
 
-        output_real, feature_real = eval_model(img_real_gather, return_feature=True)
-        output_syn, feature_syn = eval_model(img_syn_gather, return_feature=True)
-
-        loss_middle = args.forth_weight * criterion_middle(feature_real[-1], feature_syn[-1]) + args.third_weight * criterion_middle(feature_real[-2], feature_syn[-2]) + args.second_weight * criterion_middle(feature_real[-3], feature_syn[-3]) + args.first_weight * criterion_middle(feature_real[-4], feature_syn[-4])
+        output_real, feature_r = eval_model(img_real_gather, return_all_layers=True)
+        output_syn, feature_s = eval_model(img_syn_gather, return_all_layers=True)
+        
+        feature_real = feature_r[::-1]
+        feature_syn = feature_s[::-1]
+        loss_middle = args.fourth_weight * criterion_middle(feature_real[-1], feature_syn[-1]) + args.third_weight * criterion_middle(feature_real[-2], feature_syn[-2]) + args.second_weight * criterion_middle(feature_real[-3], feature_syn[-3]) + args.first_weight * criterion_middle(feature_real[-4], feature_syn[-4])
         loss_real = loss_fn(output_real, lab_real_gather)
 
         loss += loss_middle + loss_real
-        last_real_feature = torch.mean(feature_real[0].view(10, int(feature_real[0].shape[0] / args.num_classes), feature_real[0].shape[1]), dim=1)
-        last_syn_feature = torch.mean(feature_syn[0].view(10, int(feature_syn[0].shape[0] / args.num_classes), feature_syn[0].shape[1]), dim=1)
-        output = torch.mm(feature_real[0], last_syn_feature.t())
+        fr = feature_real[0]                             
+        fr = torch.flatten(fr, start_dim=1)              # [1280, C*H*W]
+        fr = fr.view(args.num_classes, -1, fr.shape[1])  # [10, 128, C*H*W]
+        last_real_feature = fr.mean(dim=1)
+
+        fs = feature_syn[0]                            
+        fs = torch.flatten(fs, start_dim=1)             
+        fs = fs.view(args.num_classes, -1, fs.shape[1])  
+        last_syn_feature = fs.mean(dim=1)
+
+        output = torch.mm(last_real_feature, last_syn_feature.t())
+
 
         loss_output = criterion_middle(last_syn_feature, last_real_feature) + args.inner_weight * criterion_sum(output, lab_real_gather)
         loss += loss_output
