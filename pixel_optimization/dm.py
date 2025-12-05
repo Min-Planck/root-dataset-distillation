@@ -3,7 +3,7 @@ import numpy as np
 import time
 
 from common import define_model
-from pix_utils import get_images, evaluate
+from pixel_optimization.pix_utils import get_images, evaluate
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -64,7 +64,7 @@ def start_dm(args, trainset, testset):
         img_size = (32, 32)
         channel = 3
 
-    indices_class = [[] for c in range(args.num_classese)] 
+    indices_class = [[] for c in range(args.num_classes)] 
     images_all = [torch.unsqueeze(trainset[i][0], dim=0) for i in range(len(trainset))]
     labels_all = [trainset[i][1] for i in range(len(trainset))]
 

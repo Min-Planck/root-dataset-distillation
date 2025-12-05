@@ -46,7 +46,7 @@ def update_model(optimizer, steps, loss_function, net, syn_data_data, syn_data_t
             optimizer.step()
 
 
-def evaluate(model_name, args, synthetic_datas, testloader, batch_size, ipc, num_train_epochs, n_classes, device):
+def evaluate(args, synthetic_datas, testloader, batch_size, ipc, num_train_epochs, n_classes, device):
     from common import define_model
 
     start_time = time.time()
@@ -56,7 +56,7 @@ def evaluate(model_name, args, synthetic_datas, testloader, batch_size, ipc, num
     
     for data_syn in synthetic_datas:
         loss_fn = torch.nn.CrossEntropyLoss().to(device)
-        net = define_model(model_name, n_classes, e_model=args.eval_model[0]).to(device)
+        net = define_model(args, n_classes, e_model=args.eval_model[0]).to(device)
         net.train()
 
         optimizer = torch.optim.SGD(net.parameters(), lr=0.01)

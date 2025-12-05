@@ -19,7 +19,7 @@ def define_model(args, num_classes, mode='pool', e_model=None):
             model = random.choice(model_pool)
             print('Random model: {}'.format(model))
         elif mode == 'single':
-             model = args.match_model
+             model = args.eval_model[0]
 
     if args.data == 'mnist' or args.data == 'fmnist':
         nch = 1
