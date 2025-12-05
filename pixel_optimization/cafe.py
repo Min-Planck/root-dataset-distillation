@@ -60,12 +60,12 @@ def condensation(
             img_syn = data_syn[c * args.ipc:(c + 1) * args.ipc].reshape((args.ipc, channel, img_size[0], img_size[1]))
 
             target_real = torch.ones((img_real.shape[0],), dtype=torch.long, device=DEVICE) * c
-            target_syn = torch.ones((args.ipc,), dtype=torch.long, device=DEVICE) * c
+            target_syn_new = torch.ones((args.ipc,), dtype=torch.long, device=DEVICE) * c
 
             img_real_gather.append(img_real)
             lab_real_gather.append(target_real)
             img_syn_gather.append(img_syn)
-            lab_syn_gather.append(target_syn)
+            lab_syn_gather.append(target_syn_new)
 
         img_real_gather = torch.stack(img_real_gather, dim=0).reshape(args.batch_size * 10, channel, img_size[0], img_size[1])
         img_syn_gather = torch.stack(img_syn_gather, dim=0).reshape(args.ipc * 10, channel, img_size[0], img_size[1])
@@ -92,9 +92,9 @@ def condensation(
         last_syn_feature = fs.mean(dim=1)
 
         output = torch.mm(last_real_feature, last_syn_feature.t())
+        targets_for_loss = torch.arange(args.num_classes, device=DEVICE, dtype=torch.long)
 
-
-        loss_output = criterion_middle(last_syn_feature, last_real_feature) + args.inner_weight * criterion_sum(output, lab_real_gather)
+        loss_output = criterion_middle(last_syn_feature, last_real_feature) + args.inner_weight * criterion_sum(output, targets_for_loss)
         loss += loss_output
 
         loss.backward()
@@ -165,7 +165,7 @@ def condensation(
             path = f'{args.output_dir}/outputs/{model_save_name}'
 
             torch.save(data_syn, path)
-        if outer_loop_cnt == args.epochs - 1:
+        if outer_loop_cnt == args.epochs:
             break
 
 def start_cafe(args, trainset, testset): 
@@ -233,7 +233,7 @@ def start_cafe(args, trainset, testset):
         args.num_classes,
         DEVICE
     )
-    print(f'Algorithm: DC')
+    print(f'Algorithm: CAFE')
     print(f"Total condensation time: {end_time - start_time:.2f} seconds")
     print(f"Final evaluation accuracy: {acc:.2f} %, Time for training: {elapsed_time:.2f} seconds")
 
