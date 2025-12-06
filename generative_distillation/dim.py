@@ -200,6 +200,18 @@ def start_dim(args, trainset, testset):
 
     optim_g = torch.optim.Adam(generator.parameters(), lr=args.lr, betas=(0.0, 0.9))
     optim_d = torch.optim.Adam(discriminator.parameters(), lr=args.lr, betas=(0.0, 0.9))
+
+    if args.tag == 'match': 
+        model_dict = torch.load(args.weight)
+        generator.load_state_dict(model_dict['generator'])
+        discriminator.load_state_dict(model_dict['discriminator'])
+        optim_g.load_state_dict(model_dict['optim_g'])
+        optim_d.load_state_dict(model_dict['optim_d'])
+        for g in optim_g.param_groups:
+            g['lr'] = args.lr
+        for g in optim_d.param_groups:
+            g['lr'] = args.lr
+    
     criterion = nn.CrossEntropyLoss()
 
     aug, aug_rand = diffaug(args)

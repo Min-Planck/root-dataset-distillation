@@ -49,11 +49,17 @@ if __name__ == '__main__':
     parser.add_argument('--lambda-div', type=float, default=0.1, help='Weight for Generator Diversity Loss')
     parser.add_argument('--lambda-ctr', type=float, default=0.1, help='Weight for Discriminator Contrastive Learning')
 
+    parser.add_argument('--match', type=str, default='grad')
+    parser.add_argument('--epochs-match-train', type=int, default=16)
+
     parser.add_argument('--data', type=str, default='cifar10')
     parser.add_argument('--num-classes', type=int, default=10)
+    parser.add_argument('--weight', type=str, default='')
+    parser.add_argument('--pretrain-weight', type=str, default='./logs/')
     parser.add_argument('--data-dir', type=str, default='./data')
     parser.add_argument('--output-dir', type=str, default='./results/')
     parser.add_argument('--logs-dir', type=str, default='./logs/')
+    parser.add_argument('--match-aug', action='store_true', default=False)
     parser.add_argument('--aug-type', type=str, default='color_crop_cutout')
     parser.add_argument('--mixup-net', type=str, default='cut')
     parser.add_argument('--bias', type=str2bool, default=False)
