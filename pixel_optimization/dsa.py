@@ -43,9 +43,9 @@ def condensation(
             gw_real = torch.autograd.grad(loss_real, net_params)
             gw_real = list((_.detach().clone() for _ in gw_real))
             
-            target_syn = torch.ones((args.ipc,), dtype=torch.long, device=DEVICE) * c
+            target_syn_tmp = torch.ones((args.ipc,), dtype=torch.long, device=DEVICE) * c
             prediction_syn = eval_model(img_syn)
-            loss_syn = loss_fn(prediction_syn, target_syn)
+            loss_syn = loss_fn(prediction_syn, target_syn_tmp)
             gw_syn = torch.autograd.grad(loss_syn, net_params, create_graph=True)
 
             dist = gradient_distance(gw_syn, gw_real, DEVICE)
