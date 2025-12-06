@@ -142,7 +142,7 @@ def validate(args, generator, testloader, criterion, aug_rand):
     all_best_top5 = []
     for e_model in args.eval_model:
         print('Evaluating {}'.format(e_model))
-        model = define_model(args, args.num_classes, e_model).cuda()
+        model = define_model(args, args.num_classes, e_model=e_model).cuda()
         model.train()
         optim_model = torch.optim.SGD(model.parameters(), args.eval_lr, momentum=args.momentum,
                                       weight_decay=args.weight_decay)
