@@ -124,7 +124,7 @@ def validate(args, generator, testloader, criterion, aug_rand):
         total_batches_count = 0
         for epoch_idx in range(args.epochs_eval):
             for batch_idx in range(10 * args.ipc // args.batch_size):
-                # obtain pseudo samples with the generator
+
                 torch.cuda.synchronize()
                 start_time = time.time()
                 if args.batch_size == args.num_classes:
