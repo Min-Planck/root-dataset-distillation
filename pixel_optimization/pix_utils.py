@@ -59,7 +59,7 @@ def evaluate(args, synthetic_datas, testloader, batch_size, ipc, num_train_epoch
         net = define_model(args, n_classes, e_model=args.eval_model[0]).to(device)
         net.train()
 
-        optimizer = torch.optim.SGD(net.parameters(), lr=0.01, momentum=args.momentum,
+        optimizer = torch.optim.SGD(net.parameters(), args.eval_lr, momentum=args.momentum,
                                       weight_decay=args.weight_decay)
         optimizer.zero_grad()
 
