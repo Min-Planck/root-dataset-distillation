@@ -4,7 +4,7 @@ import time
 
 from distance import gradient_distance
 from common import define_model
-from pixel_optimization.augment import DiffAugment, ParamDiffAug
+from ..augment import DiffAug
 from pixel_optimization.pix_utils import get_images, get_loops, update_model, evaluate
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -24,7 +24,8 @@ def condensation(
         data_syn,
         target_syn,
         indices_class, 
-        images_all): 
+        images_all,
+        augmentor): 
     
     loss_avg = 0.0
     for t in range(outer_loop):
@@ -34,8 +35,8 @@ def condensation(
             img_real = get_images(indices_class, images_all, c, args.batch_size)
             img_syn = data_syn[c * args.ipc:(c + 1) * args.ipc].reshape((args.ipc, channel, img_size[0], img_size[1]))
 
-            img_real = DiffAugment(img_real, strategy=args.aug_type, param=ParamDiffAug())
-            img_syn = DiffAugment(img_syn, strategy=args.aug_type, param=ParamDiffAug())
+            img_real = augmentor(img_real, single_aug=True)
+            img_syn = augmentor(img_syn, single_aug=True)
 
             target_real = torch.ones((img_real.shape[0],), dtype=torch.long, device=DEVICE) * c
             prediction_real = eval_model(img_real)
@@ -99,6 +100,10 @@ def start_dsa(args, trainset, testset):
 
     loss_fn = torch.nn.CrossEntropyLoss().to(DEVICE) 
 
+    # Initialize augmentor once
+    # single=True: randomly select ONE augmentation from ALL (like original DSA)
+    augmentor = DiffAug(strategy=args.aug_type, batch=False, single=True)
+
     start_time = time.time()
 
     for step in range(args.epochs):
@@ -122,7 +127,8 @@ def start_dsa(args, trainset, testset):
             data_syn,
             targets_syn,
             indices_class, 
-            images_all)
+            images_all,
+            augmentor)
  
     end_time = time.time()
     

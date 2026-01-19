@@ -7,7 +7,7 @@ import torch.nn.functional as F
 import time 
 
 from generative_distillation.gan_model import Generator, Discriminator
-from generative_distillation.augment import diffaug
+from ..augment import diffaug
 from common import define_model
 from generative_distillation.gen_utils import AverageMeter, accuracy, calc_gradient_penalty, test, rand_bbox, matchloss, train_match_model
 
