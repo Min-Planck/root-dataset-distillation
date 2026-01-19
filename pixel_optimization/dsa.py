@@ -4,7 +4,7 @@ import time
 
 from distance import gradient_distance
 from common import define_model
-from ..augment import DiffAug
+from augment import DiffAug
 from pixel_optimization.pix_utils import get_images, get_loops, update_model, evaluate
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
