@@ -46,7 +46,13 @@ def start_coreset(args, trainset, testset):
     print(f"Selected {len(indices)} samples")
     
     if args.balance:
-        targets = trainset.targets[indices]
+        if hasattr(trainset, 'targets'):
+            targets = trainset.targets[indices]
+        elif hasattr(trainset, 'labels'):
+            targets = trainset.labels[indices]
+        else:
+            targets = [trainset[i][1] for i in indices]
+        
         for c in range(args.num_classes):
             count = (targets == c).sum()
             print(f"  Class {c}: {count} samples")
