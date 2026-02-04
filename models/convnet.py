@@ -122,7 +122,7 @@ class ConvNet(nn.Module):
     def forward_deepcore(self, x):
         """Forward riêng cho DeepCore với embedding recorder"""
         with torch.set_grad_enabled(not self.no_grad):
-            for d in range(self.net_depth):
+            for d in range(self.depth):
                 x = self.features[d](x)
             x = x.view(x.size(0), -1)
             x = self.embedding_recorder(x)  
