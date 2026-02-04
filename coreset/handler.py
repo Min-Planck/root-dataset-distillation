@@ -36,7 +36,6 @@ def start_coreset(args, trainset, testset):
         dst_train=trainset,
         args=args,
         fraction=args.fraction,
-        random_seed=args.seed,
         **selection_args
     )
     
