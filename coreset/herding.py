@@ -52,7 +52,7 @@ class Herding(EarlyTrain):
                                         
 
                 for i, (inputs, _) in enumerate(data_loader):
-                    self.model(inputs.to(self.device))
+                    self.model.forward_deepcore(inputs.to(self.device))
                     # Clone the embedding immediately to avoid it being overwritten
                     matrix[i * self.args.selection_batch:min((i + 1) * self.args.selection_batch, sample_num)] = self.model.embedding_recorder.embedding.clone()
 

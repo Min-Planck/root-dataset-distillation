@@ -138,7 +138,7 @@ class kCenterGreedy(EarlyTrain):
                                     batch_size=self.args.selection_batch)
 
                 for i, (inputs, _) in enumerate(data_loader):
-                    self.model(inputs.to(self.device))
+                    self.model.forward_deepcore(inputs.to(self.device))
                     matrix.append(self.model.embedding_recorder.embedding.clone())
 
         self.model.no_grad = False
