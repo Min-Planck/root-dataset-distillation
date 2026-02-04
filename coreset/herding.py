@@ -22,7 +22,7 @@ class Herding(EarlyTrain):
             def _construct_matrix(index=None):
                 data_loader = torch.utils.data.DataLoader(
                     self.dst_train if index is None else torch.utils.data.Subset(self.dst_train, index),
-                    batch_size=self.n_train if index is None else len(index), num_workers=self.args.workers)
+                    batch_size=self.n_train if index is None else len(index))
                 inputs, _ = next(iter(data_loader))
                 return inputs.flatten(1).requires_grad_(False).to(self.device)
 
@@ -34,7 +34,7 @@ class Herding(EarlyTrain):
         raise ValueError("num_classes of pretrain dataset does not match that of the training dataset.")
 
     def while_update(self, outputs, loss, targets, epoch, batch_idx, batch_size):
-        if batch_idx % self.args.print_freq == 0:
+        if batch_idx % 20 == 0:
             print('| Epoch [%3d/%3d] Iter[%3d/%3d]\t\tLoss: %.4f' % (
                 epoch, self.epochs, batch_idx + 1, (self.n_pretrain_size // batch_size) + 1, loss.item()))
 
@@ -48,8 +48,8 @@ class Herding(EarlyTrain):
 
                 data_loader = torch.utils.data.DataLoader(self.dst_train if index is None else
                                             torch.utils.data.Subset(self.dst_train, index),
-                                            batch_size=self.args.selection_batch,
-                                            num_workers=self.args.workers)
+                                            batch_size=self.args.selection_batch)
+                                        
 
                 for i, (inputs, _) in enumerate(data_loader):
                     self.model(inputs.to(self.device))
@@ -76,7 +76,7 @@ class Herding(EarlyTrain):
             select_result = np.zeros(sample_num, dtype=bool)
 
             for i in range(budget):
-                if i % self.args.print_freq == 0:
+                if i % 20 == 0:
                     print("| Selecting [%3d/%3d]" % (i + 1, budget))
                 dist = self.metric(((i + 1) * mu - torch.sum(matrix[select_result], dim=0)).view(1, -1),
                                    matrix[~select_result])

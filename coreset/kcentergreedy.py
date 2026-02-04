@@ -139,7 +139,7 @@ class kCenterGreedy(EarlyTrain):
 
                 for i, (inputs, _) in enumerate(data_loader):
                     self.model(inputs.to(self.device))
-                    matrix.append(self.model.embedding_recorder.embedding)
+                    matrix.append(self.model.embedding_recorder.embedding.clone())
 
         self.model.no_grad = False
         return torch.cat(matrix, dim=0)
