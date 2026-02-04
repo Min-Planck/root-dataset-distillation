@@ -71,7 +71,7 @@ class kCenterGreedy(EarlyTrain):
                  torchvision_pretrain: bool = True, **kwargs):
         super().__init__(dst_train, args, fraction, random_seed, epochs=epochs, specific_model=specific_model,
                          torchvision_pretrain=torchvision_pretrain, **kwargs)
-
+        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         if already_selected.__len__() != 0:
             if min(already_selected) < 0 or max(already_selected) >= self.n_train:
                 raise ValueError("List of already selected points out of the boundary.")
@@ -89,10 +89,9 @@ class kCenterGreedy(EarlyTrain):
             def _construct_matrix(index=None):
                 data_loader = torch.utils.data.DataLoader(
                     self.dst_train if index is None else torch.utils.data.Subset(self.dst_train, index),
-                    batch_size=self.n_train if index is None else len(index),
-                    num_workers=self.args.workers)
+                    batch_size=self.n_train if index is None else len(index))
                 inputs, _ = next(iter(data_loader))
-                return inputs.flatten(1).requires_grad_(False).to(self.args.device)
+                return inputs.flatten(1).requires_grad_(False).to(self.device)
             self.construct_matrix = _construct_matrix
 
         self.balance = balance
@@ -101,7 +100,7 @@ class kCenterGreedy(EarlyTrain):
         raise ValueError("num_classes of pretrain dataset does not match that of the training dataset.")
 
     def while_update(self, outputs, loss, targets, epoch, batch_idx, batch_size):
-        if batch_idx % self.args.print_freq == 0:
+        if batch_idx % 20 == 0:
             print('| Epoch [%3d/%3d] Iter[%3d/%3d]\t\tLoss: %.4f' % (
             epoch, self.epochs, batch_idx + 1, (self.n_pretrain_size // batch_size) + 1, loss.item()))
 
@@ -111,15 +110,15 @@ class kCenterGreedy(EarlyTrain):
         with torch.no_grad():
             with self.model.embedding_recorder:
                 sample_num = self.n_train if index is None else len(index)
-                matrix = torch.zeros([sample_num, self.emb_dim], requires_grad=False).to(self.args.device)
+                matrix = torch.zeros([sample_num, self.emb_dim], requires_grad=False).to(self.device)
 
                 data_loader = torch.utils.data.DataLoader(self.dst_train if index is None else
                                         torch.utils.data.Subset(self.dst_train, index),
-                                                batch_size=self.args.selection_batch,
-                                                num_workers=self.args.workers)
+                                                batch_size=self.args.selection_batch)
+                                                
 
                 for i, (inputs, _) in enumerate(data_loader):
-                    self.model(inputs.to(self.args.device))
+                    self.model(inputs.to(self.device))
                     matrix[i * self.args.selection_batch:min((i + 1) * self.args.selection_batch,
                                                              sample_num)] = self.model.embedding_recorder.embedding
 
@@ -136,11 +135,10 @@ class kCenterGreedy(EarlyTrain):
 
                 data_loader = torch.utils.data.DataLoader(self.dst_train if index is None else
                                     torch.utils.data.Subset(self.dst_train, index),
-                                    batch_size=self.args.selection_batch,
-                                    num_workers=self.args.workers)
+                                    batch_size=self.args.selection_batch)
 
                 for i, (inputs, _) in enumerate(data_loader):
-                    self.model(inputs.to(self.args.device))
+                    self.model(inputs.to(self.device))
                     matrix.append(self.model.embedding_recorder.embedding)
 
         self.model.no_grad = False
@@ -164,19 +162,18 @@ class kCenterGreedy(EarlyTrain):
                                                                                budget=round(
                                                                                    self.fraction * len(class_index)),
                                                                                metric=self.metric,
-                                                                               device=self.args.device,
+                                                                               device=self.device,
                                                                                random_seed=self.random_seed,
                                                                                index=class_index,
                                                                                already_selected=self.already_selected[
                                                                                    np.in1d(self.already_selected,
-                                                                                           class_index)],
-                                                                               print_freq=self.args.print_freq))
+                                                                                           class_index)],))
         else:
             matrix = self.construct_matrix()
             del self.model_optimizer
             del self.model
             selection_result = k_center_greedy(matrix, budget=self.coreset_size,
-                                               metric=self.metric, device=self.args.device,
+                                               metric=self.metric, device=self.device,
                                                random_seed=self.random_seed,
-                                               already_selected=self.already_selected, print_freq=self.args.print_freq)
+                                               already_selected=self.already_selected)
         return {"indices": selection_result}

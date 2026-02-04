@@ -9,6 +9,8 @@ class Herding(EarlyTrain):
                  specific_model="ResNet18", balance: bool = False, metric="euclidean", **kwargs):
         super().__init__(dst_train, args, fraction, random_seed, epochs=epochs, specific_model=specific_model, **kwargs)
 
+        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
         if metric == "euclidean":
             self.metric = euclidean_dist
         elif callable(metric):
@@ -22,7 +24,7 @@ class Herding(EarlyTrain):
                     self.dst_train if index is None else torch.utils.data.Subset(self.dst_train, index),
                     batch_size=self.n_train if index is None else len(index), num_workers=self.args.workers)
                 inputs, _ = next(iter(data_loader))
-                return inputs.flatten(1).requires_grad_(False).to(self.args.device)
+                return inputs.flatten(1).requires_grad_(False).to(self.device)
 
             self.construct_matrix = _construct_matrix
 
@@ -42,7 +44,7 @@ class Herding(EarlyTrain):
         with torch.no_grad():
             with self.model.embedding_recorder:
                 sample_num = self.n_train if index is None else len(index)
-                matrix = torch.zeros([sample_num, self.emb_dim], requires_grad=False).to(self.args.device)
+                matrix = torch.zeros([sample_num, self.emb_dim], requires_grad=False).to(self.device)
 
                 data_loader = torch.utils.data.DataLoader(self.dst_train if index is None else
                                             torch.utils.data.Subset(self.dst_train, index),
@@ -50,7 +52,7 @@ class Herding(EarlyTrain):
                                             num_workers=self.args.workers)
 
                 for i, (inputs, _) in enumerate(data_loader):
-                    self.model(inputs.to(self.args.device))
+                    self.model(inputs.to(self.device))
                     matrix[i * self.args.selection_batch:min((i + 1) * self.args.selection_batch, sample_num)] = self.model.embedding_recorder.embedding
 
         self.model.no_grad = False

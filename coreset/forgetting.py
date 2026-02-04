@@ -12,7 +12,7 @@ class Forgetting(EarlyTrain):
                  dst_test=None, **kwargs):
         super().__init__(dst_train, args, fraction, random_seed, epochs, specific_model=specific_model,
                          dst_test=dst_test)
-
+        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.balance = balance
 
     def get_hms(self, seconds):
@@ -42,7 +42,7 @@ class Forgetting(EarlyTrain):
         _, predicted = torch.max(outputs.data, 1)
         self.correct += predicted.eq(targets.data).cpu().sum()
 
-        if batch_idx % self.args.print_freq == 0:
+        if batch_idx % 20 == 0:
             print('| Epoch [%3d/%3d] Iter[%3d/%3d]\t\tLoss: %.4f Acc@1: %.3f%%' % (
             epoch, self.epochs, batch_idx + 1, (self.n_train // batch_size) + 1, loss.item(),
             100. * self.correct.item() / self.total))
@@ -58,8 +58,8 @@ class Forgetting(EarlyTrain):
     def before_run(self):
         self.elapsed_time = 0
 
-        self.forgetting_events = torch.zeros(self.n_train, requires_grad=False).to(self.args.device)
-        self.last_acc = torch.zeros(self.n_train, requires_grad=False).to(self.args.device)
+        self.forgetting_events = torch.zeros(self.n_train, requires_grad=False).to(self.device)
+        self.last_acc = torch.zeros(self.n_train, requires_grad=False).to(self.device)
 
     def finish_run(self):
         pass
