@@ -100,10 +100,6 @@ def start_coreset(args, trainset, testset):
             _, predicted = outputs.max(1)
             total += targets.size(0)
             correct += predicted.eq(targets).sum().item()
-            
-            if batch_idx % 10 == 0:
-                print(f'Epoch [{epoch+1}/{num_epochs}] Batch [{batch_idx}/{len(subset_loader)}] '
-                      f'Loss: {loss.item():.4f} Acc: {100.*correct/total:.2f}%')
         
         epoch_loss = train_loss / len(subset_loader)
         epoch_acc = 100. * correct / total

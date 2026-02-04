@@ -81,8 +81,8 @@ class EarlyTrain(CoresetMethod):
         self.model_optimizer = torch.optim.SGD(
             self.model.parameters(), 
             lr=self.args.selection_lr,
-            momentum=self.args.selection_momentum,
-            weight_decay=self.args.selection_weight_decay
+            momentum=self.args.momentum,
+            weight_decay=self.args.weight_decay
         )
 
         self.before_run()
