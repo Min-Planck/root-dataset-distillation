@@ -6,6 +6,7 @@ import torchvision.transforms as transforms
 
 from models import convnet as CN
 from models import resnet as RN
+from models import mlp as MLP
 
 def define_model(args, num_classes, mode='pool', e_model=None):
     '''Obtain model for training and validating
@@ -38,6 +39,12 @@ def define_model(args, num_classes, mode='pool', e_model=None):
         return RN.ResNet(args.data, 50, num_classes, nch=nch)
     elif model == 'resnet101':
         return RN.ResNet(args.data, 101, num_classes, nch=nch)
+    elif model == 'mlp':
+        if args.data in ['mnist', 'fmnist']:
+            im_size = (28, 28)
+        else:
+            im_size = (32, 32)
+        return MLP.MLP(nch, num_classes, im_size)
     
 def load_data(args):
     '''Obtain data

@@ -1,3 +1,4 @@
+from .nets_utils import EmbeddingRecorder
 import torch
 import torch.nn as nn
 
@@ -11,7 +12,9 @@ class ConvNet(nn.Module):
                  channel=3,
                  net_act='relu',
                  net_pooling='avgpooling',
-                 im_size=(32, 32)):
+                 im_size=(32, 32),
+                 record_embedding=False,  
+                 no_grad=False):
         # print(f"Define Convnet (depth {net_depth}, width {net_width}, norm {net_norm})")
         super(ConvNet, self).__init__()
         if net_act == 'sigmoid':
@@ -39,6 +42,9 @@ class ConvNet(nn.Module):
                                                     net_pooling, im_size)
         num_feat = shape_feat[0] * shape_feat[1] * shape_feat[2]
         self.classifier = nn.Linear(num_feat, num_classes)
+        self.embedding_recorder = EmbeddingRecorder(record_embedding)
+        self.no_grad = no_grad
+        
 
     def forward(self, x, return_features=False, return_all_layers=False):
         all_layers_output = [] 
@@ -64,6 +70,10 @@ class ConvNet(nn.Module):
         else:
             return logit
 
+    def get_last_layer(self):
+        """Required by DeepCo   re methods"""
+        return self.classifier
+    
     def get_feature(self, x, idx_from, idx_to=-1, return_prob=False, return_logit=False):
         if idx_to == -1:
             idx_to = idx_from
@@ -108,7 +118,17 @@ class ConvNet(nn.Module):
             norm = None
             exit('unknown net_norm: %s' % net_norm)
         return norm
-
+    
+    def forward_deepcore(self, x):
+        """Forward riêng cho DeepCore với embedding recorder"""
+        with torch.set_grad_enabled(not self.no_grad):
+            for d in range(self.net_depth):
+                x = self.features[d](x)
+            x = x.view(x.size(0), -1)
+            x = self.embedding_recorder(x)  
+            logit = self.classifier(x)
+        return logit
+    
     def _make_layers(self, channel, net_width, net_depth, net_norm, net_pooling, im_size):
         layers = {'conv': [], 'norm': [], 'act': [], 'pool': []}
 

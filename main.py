@@ -12,6 +12,7 @@ from pixel_optimization.dsa import start_dsa
 from pixel_optimization.dm import start_dm
 from pixel_optimization.cafe import start_cafe
 from pixel_optimization.dc import start_dc
+from coreset import start_coreset
 
 from common import load_data 
 
@@ -77,7 +78,18 @@ if __name__ == '__main__':
     parser.add_argument('--fourth-weight', type=float, default=0.1, help='cafe') 
     parser.add_argument('--inner-weight', type=float, default=0.01, help='cafe')
 
+
+    parser.add_argument('--selection', type=str, default=None, 
+                    choices=['Uniform', 'Herding', 'KCenterGreedy', 'Forgetting'],
+                    help='Coreset selection method (None = use all data)')
+    parser.add_argument('--samples-per-class', type=int, default=None, help='Number of samples per class (alternative to fraction)')
+    parser.add_argument('--balance', type=bool, default=True, help='Balance selection per class (True = guarantee all classes selected)')
+    parser.add_argument('--selection_epochs', type=int, default=20, help='Pre-training epochs for selection (10-100)')
+    parser.add_argument('--selection_batch', type=int, default=128, help='Batch size for selection (None = use main batch size)')
+    parser.add_argument('--selection_lr', type=float, default=0.1, help='Learning rate for selection pre-training')
+
     args = parser.parse_args()
+
 
     random.seed(args.seed)
     np.random.seed(args.seed)
@@ -97,22 +109,34 @@ if __name__ == '__main__':
     print(args)
 
     trainset, testset = load_data(args)
-    algorithm = args.algorithm.lower()
+    
+    if args.tag == 'coreset': 
+        if args.samples_per_class is not None:
+            total_samples = len(trainset)
+            num_classes = args.num_classes
+            args.fraction = (args.samples_per_class * num_classes) / total_samples
+            print(f"samples-per-class={args.samples_per_class} → fraction={args.fraction:.6f}")
 
-    if algorithm == 'dc':
-        func = start_dc
-    elif algorithm == 'dsa':
-        func = start_dsa
-    elif algorithm == 'dm':
-        func = start_dm
-    elif algorithm == 'cafe':
-        func = start_cafe
-    elif algorithm == 'dim':
-        func = start_dim
-    elif algorithm == 'codim':
-        func = start_codim
+        start_coreset(args, trainset, testset)
+        
+    else: 
 
-    func(args, trainset, testset)
+        algorithm = args.algorithm.lower()
+
+        if algorithm == 'dc':
+            func = start_dc
+        elif algorithm == 'dsa':
+            func = start_dsa
+        elif algorithm == 'dm':
+            func = start_dm
+        elif algorithm == 'cafe':
+            func = start_cafe
+        elif algorithm == 'dim':
+            func = start_dim
+        elif algorithm == 'codim':
+            func = start_codim
+
+        func(args, trainset, testset)
     
 
     
