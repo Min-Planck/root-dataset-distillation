@@ -101,10 +101,8 @@ def start_coreset(args, trainset, testset):
         
         epoch_loss = train_loss / len(subset_loader)
         epoch_acc = 100. * correct / total
-        print(f'\n>>> Epoch [{epoch+1}/{num_epochs}] '
-              f'Train Loss: {epoch_loss:.4f} Train Acc: {epoch_acc:.2f}%')
         
-        if (epoch + 1) % 10 == 0 or epoch == num_epochs - 1:
+        if (epoch + 1) % 100 == 0 or epoch == num_epochs - 1:
             test_acc, test_loss = eval_coreset(args, model, testset)
             print(f'>>> Test Loss: {test_loss:.4f} Test Acc: {test_acc:.2f}%\n')
     
