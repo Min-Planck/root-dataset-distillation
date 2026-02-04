@@ -145,7 +145,7 @@ class EarlyTrain(CoresetMethod):
 
         with torch.no_grad():
             for batch_idx, (input, target) in enumerate(test_loader):
-                output = self.model(input.to(DEVICE))
+                output = self.model.forward_deepcore(input.to(DEVICE))
                 loss = self.criterion(output, target.to(DEVICE))
                 
                 test_loss += loss.item()
