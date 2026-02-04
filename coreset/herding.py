@@ -92,7 +92,7 @@ class Herding(EarlyTrain):
         if self.balance:
             selection_result = np.array([], dtype=np.int32)
             for c in range(self.args.num_classes):
-                class_index = np.arange(self.n_train)[self.dst_train.targets == c]
+                class_index = np.arange(self.n_train)[self.targets == c]
 
                 selection_result = np.append(selection_result, self.herding(self.construct_matrix(class_index),
                         budget=round(self.fraction * len(class_index)), index=class_index))

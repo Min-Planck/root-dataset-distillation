@@ -14,6 +14,13 @@ class CoresetMethod(object):
 
         self.n_train = len(dst_train)
         self.coreset_size = round(self.n_train * fraction)
+        
+        if hasattr(dst_train, 'targets'):
+            self.targets = dst_train.targets
+        elif hasattr(dst_train, 'labels'):
+            self.targets = dst_train.labels
+        else:
+            raise AttributeError("Dataset must have either 'targets' or 'labels' attribute")
 
     def select(self, **kwargs):
         return
